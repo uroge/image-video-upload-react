@@ -1,0 +1,55 @@
+@import "../base/variables";
+
+.cards {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    width: 60%;
+    justify-content: space-between;
+
+    &__card {
+        background-color: $color-brown;
+        padding: 5rem 10rem;
+        border: 5px solid $color-dark;
+        border-radius: 10px;
+        transition: all .4s;
+        text-align: center;
+
+        h5 {
+            text-transform: uppercase;
+            color: $color-secondary;
+            text-decoration: none;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity .9s;
+            margin-top: 1rem;
+        }
+
+        &:hover {
+            cursor: pointer;
+            transform: scale(1.05);
+            box-shadow: 3px 6px 10px 5px rgba($color-secondary, 0.79)
+        }
+
+        &:hover .cards__icon {
+            transform: scale(1.1);
+        }
+
+        &:hover h5 {
+            opacity: 1;
+            text-decoration: none;
+        }
+    }
+
+    .Link {
+        text-decoration: none;
+    }
+
+    &__icon {
+        font-size: 10rem;
+        color: $color-secondary;
+        transition: all .4s;
+    }
+}
