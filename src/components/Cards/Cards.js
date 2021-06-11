@@ -11,10 +11,10 @@ const cards = (props) => (
         </section>
         <section className="cards">
             <Link to="/photo-upload" className="Link">
-                <Card fileType="photo" iconClass="fa-image"/>
+                <Card fileType="photo" type="image" />
             </Link>
             <Link to="/video-upload" className="Link">
-                <Card fileType="video" iconClass="fa-video"/>
+                <Card fileType="video" type="video" />
             </Link>
         </section>
     </React.Fragment>

@@ -5,9 +5,11 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import axios from '../../axios';
 import * as actionTypes from '../../store/actions';
+import { app } from '../../firebase.utils';
 
 import Spinner from '../Spinner/Spinner';
 import Modal from '../Modal/Modal';
+import { AiOutlineCloudUpload } from 'react-icons/ai';
 
 class PhotoUpload extends Component {
     state = {
@@ -16,25 +18,71 @@ class PhotoUpload extends Component {
         isUploadSuccessful: false
     };
 
+    /**
+     * Function that sets isDragOver to true
+     * and adds dragover class to upload content
+     * @param {*} event - onDragOver event
+    */
     onDragOver = (event) => {
         event.preventDefault();
         this.setState({isDragOver: true});
     }
 
+    /**
+     * Function that sets isDragOver to false
+     * and removes dragover class to upload content
+     * @param {*} event - onDragLeave event
+    */
     onDragLeave = () => {
         this.setState({isDragOver: false});
     }
 
+    /**
+     * Function that accepts dropped images, creates thumbnail
+     * and passes them to reducer
+     * @param {*} event - onDrop event
+    */
+    onImageDrop = async (event) => {
+        event.preventDefault();
+        const acceptedImages = [...event.dataTransfer.files];        
+
+        const modifiedImages = [];
+
+        acceptedImages.forEach(async (image) => {
+                if(image.type.startsWith('image/')) {
+                    modifiedImages.push(Object.assign(image, {
+                        preview: URL.createObjectURL(image)
+                    }));
+                } else {
+                    alert('File type not supported!');
+                }
+        });
+
+        this.props.onFilesDrop(modifiedImages);
+        this.setState({isDragOver: false});
+    }
+
+    /**
+     * Function that creates url for every image
+     * and sends images to database
+     * @param {Array} images - array of images from the store
+    */
     onImageUpload = (images) => {
+        this.setState({isLoading: true});
         if(images.length > 0) {
-            images.forEach(image => {
+            images.forEach(async (image) => {
+                const storageRef = app.storage().ref(`images/`);
+                const fileRef = storageRef.child(image.name);
+    
+                await fileRef.put(image);
+                const fileUrl = await fileRef.getDownloadURL();
+
                 const imageData = {
-                    preview: image.preview,
+                    preview: fileUrl,
                     name: image.name,
                     lastModifiedDate: image.lastModifiedDate,
                     type: image.type
                 }
-                this.setState({isLoading: true});
                 axios.post('/images.json', imageData)
                 .then(response => {
                     console.log(response);
@@ -42,17 +90,23 @@ class PhotoUpload extends Component {
                     this.setState({ isUploadSuccessful: true });
                 })
                 .catch(error => console.log(error));
+
             });
         } else {
             alert('Nothing to upload');
         }
 
-        this.props.updateImageStore();
+        this.props.updateImageStore();    
     }
 
+    /**
+     * Function that sets isUploadSuccessful to false
+     * and closes the modal 
+    */
     modalCloseHandler = () => {
         this.setState({ isUploadSuccessful: false });
     }
+      
 
     render() {
         const imageThumbnals = this.props.images.map((image) => {
@@ -64,18 +118,18 @@ class PhotoUpload extends Component {
             <section className="heading">
                 <h1>Upload a Photo</h1>
             </section>
-            { this.state.isUploadSuccessful ?  <Modal show={this.state.isUploadSuccessful} modalClosed={this.modalCloseHandler}>
+            { this.state.isUploadSuccessful ? <Modal show={this.state.isUploadSuccessful} modalClosed={this.modalCloseHandler}>
                 Images Uploaded Successfully
             </Modal> : null }
             <section className="upload">
                 <div className={`upload__content${ this.state.isDragOver ? ' upload__dragover' : '' }`} 
                     onDragLeave={ this.onDragLeave } 
                     onDragOver={ (event) => this.onDragOver(event)}
-                    onDrop={(event) => this.props.onFilesDrop(event)} >
+                    onDrop={(event) => this.onImageDrop(event)} >
                         
                     { imageThumbnals.length === 0 && this.state.isLoading === false ? 
                         <div>
-                            <i className="fas fa-cloud-upload-alt upload__icon"></i>
+                            <AiOutlineCloudUpload className="upload__icon"/>
                             <h5>Drag & Drop an image to upload it</h5>
                         </div> 
                     : null }
@@ -104,7 +158,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        onFilesDrop: (event) => dispatch({type: actionTypes.IMAGE, event: event}),
+        onFilesDrop: (images) => dispatch({type: actionTypes.IMAGE, images: images}),
         updateImageStore: () => dispatch({type: actionTypes.UPLOAD_IMAGE})
     };
 };

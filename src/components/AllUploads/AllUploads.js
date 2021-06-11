@@ -16,7 +16,9 @@ class AllUploads extends Component {
         .catch(error => console.log(error));
 
         axios.get('https://image-video-react-default-rtdb.firebaseio.com/videos.json')
-        .then(response => this.setState({ videos: Object.values(response.data) }))
+        .then(response => {
+            this.setState({ videos: Object.values(response.data) })
+        })
         .catch(error => console.log(error));
     }
 

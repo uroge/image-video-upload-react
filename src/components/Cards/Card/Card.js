@@ -1,13 +1,14 @@
 import React from 'react';
-
+import {AiTwotoneVideoCamera} from 'react-icons/ai';
+import {IoMdImages} from 'react-icons/io';
 import '../../../sass/components/cards.scss';
 
 const card = (props) => {
-    const iconClasses = ['fas', props.iconClass , 'cards__icon'];
-
     return (
         <div className="cards__card js-upload-image">
-            <i className={iconClasses.join(' ')}></i>
+            {props.type === 'video' ? 
+            <AiTwotoneVideoCamera className="cards__icon"/> :
+            <IoMdImages className="cards__icon"/> }
             <h5>Upload a {props.fileType}</h5>
         </div>
     );
